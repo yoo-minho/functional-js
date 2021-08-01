@@ -1,0 +1,68 @@
+<script>
+
+    const list = [1, 2, 3];
+
+    for (var i = 0; i < list.length; i++) {
+        console.log(list[i]);
+    }
+
+    for (const a of list) console.log(a);
+
+    const set = new Set([1, 2, 3]);
+    for (const a of set) console.log(a);
+
+    const map = new Map([['a', 1], ['b', 2], ['c', 3]]);
+    for (const a of map) console.log(a);
+    for (const a of map.keys()) console.log(a);
+    for (const a of map.values()) console.log(a);
+    for (const a of map.entries()) console.log(a);
+
+    const iterable = {
+        [Symbol.iterator]() {
+            let i = 3;
+            return {
+                next() {
+                    return i === 0 ? {done: true} : {value: i--, done: false};
+                },
+                [Symbol.iterator]() {
+                    return this;
+                }
+            }
+        }
+    }
+
+    console.log([...list, ...set, ...map]);
+
+    console.clear();
+
+    function* infinity(i = 0) {
+        while (true) yield i++;
+    }
+
+    function* limit(l, iter) {
+        for (const a of iter) {
+            yield a;
+            if (a === l) return;
+        }
+    }
+
+    function* odds(l) {
+        for (const a of limit(l, infinity(1))) {
+            if (a % 2) yield a;
+        }
+    }
+
+    let iter = odds(10);
+    console.log(iter.next());
+    console.log(iter.next());
+    console.log(iter.next());
+    console.log(iter.next());
+    console.log(iter.next());
+
+    const [head, head2, ...tail] = odds(15);
+    console.log(head);
+    console.log(head2);
+    console.log(tail);
+
+
+</script>
