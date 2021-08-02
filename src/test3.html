@@ -1,0 +1,49 @@
+<script src="./fxJs.js"></script>
+<script>
+
+    const products = [
+        {name: '반팔티', price: 15000, quantity: 1},
+        {name: '긴팔티', price: 20000, quantity: 2},
+        {name: '핸드폰케이스', price: 15000, quantity: 3},
+        {name: '후드티', price: 30000, quantity: 4},
+        {name: '바지', price: 25000, quantity: 5}
+    ];
+
+    /**
+     * 1. products 라는 jsonArray 에서
+     * 2. 20000원 미만으로 필터하고 (filter)
+     * 3. 가격으로 대응하고 (map)
+     * 4. 더한 (add)
+     * 5. 누적값을 알려줘! (reduce)
+     */
+    console.log(
+        reduce( //5. 누적값을 알려줘! (reduce)
+            add, //4. 더한 (add)
+            map(p => p.price, //3. 가격으로 대응하고 (map)
+                filter(p => p.price < 20000, //2. 20000원 미만으로 필터하고 (filter)
+                    products //1. products 라는 jsonArray 에서
+                )))
+    );
+
+    //const go = (...args) => reduce((a, f) => f(a), args);
+    //const pipe = (f, ...fs) => (...as) => go(f(...as), ...fs);
+
+    go(
+        products,
+        products => filter(p => p.price < 20000, products),
+        products => map(p => p.price, products),
+        prices => reduce(add, prices),
+        console.log
+    )
+
+    //const curry = f => (a, ..._) => _.length ? f(a, ..._) : (..._) => f(a, ..._);
+
+    go(
+        products,
+        filter(p => p.price < 20000),
+        map(p => p.price),
+        reduce(add),
+        console.log
+    )
+
+</script>

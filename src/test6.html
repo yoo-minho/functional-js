@@ -1,0 +1,20 @@
+<script src="./fxJs.js"></script>
+<script>
+
+    go(range(10000),
+        map(n => n + 10),
+        filter(n => n % 2),
+        take(10),
+        console.log
+    )
+
+    go(L.range(10000),
+        L.map(n => n + 10),
+        L.filter(n => n % 2),
+        take(10), //가장 먼저 실행!
+        console.log
+    )
+
+    //이 둘의 실행시간 차이는 5 ~ 10배정도 난다.
+
+</script>
