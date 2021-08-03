@@ -1,0 +1,52 @@
+<script src="./fxJs.js"></script>
+<script>
+
+    const data = [[1, 2], 3, 4, [5, 6], [7, 8, 9]];
+    const data2 = [[1, 2], [[3]], 4, [5, 6], [7, 8, 9]];
+    //const isIterable = a => a && a[Symbol.iterator];
+
+    // L.flatten = function* (iter) {
+    //     for (const a of iter) {
+    //         if (isIterable(a)) yield* a;
+    //         else yield a;
+    //     }
+    // }
+    const flatten = pipe(L.flatten, takeAll);
+
+    L.deepFlat = function* f(iter) {
+        for (const a of iter) {
+            if (isIterable(a)) yield* f(a);
+            else yield a;
+        }
+    }
+
+    L.flatMap = curry(pipe(L.map, L.flatten));
+    const flatMap = curry(pipe(L.map, flatten));
+
+    console.log([...L.flatten(data)]);
+    console.log(flatten(data));
+    console.log([...L.deepFlat(data2)]);
+
+    console.clear();
+
+    console.log(data.flatMap(a => a));
+    console.log(data2.flatMap(a => a * a))
+    console.log(L.flatMap((a => a * a), data));
+
+    console.clear();
+
+    const arr = [
+        [1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [9, 10]
+    ];
+    go(arr,
+        L.flatten,
+        L.filter(a => a % 2),
+        take(3),
+        reduce(add),
+        console.log
+    )
+
+</script>

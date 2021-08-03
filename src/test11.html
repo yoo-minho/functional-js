@@ -1,0 +1,62 @@
+<script src="./fxJs.js"></script>
+<script>
+
+    go([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)],
+        map(a => Promise.resolve(a + 10)),
+        console.log)
+
+    go([1, 2, 3, 4, 5, 6],
+        L.map(a => Promise.resolve(a * a)),
+        L.filter(a => Promise.resolve(a % 2)),
+        take(2),
+        console.log)
+
+    go([1, 2, 3, 4],
+        L.map(a => Promise.resolve(a * a)),
+        L.filter(a => Promise.resolve(a % 2)),
+        reduce(add),
+        console.log)
+
+    const delay1000 = a => new Promise(resolve => setTimeout(() => resolve(a), 1000))
+
+    go([1, 2, 3, 4, 5],
+        L.map(a => delay1000(a * a)),
+        L.filter(a => Promise.resolve(a % 2)),
+        reduce(add),
+        console.log
+    )
+
+    const C = {};
+    const catchNoop = arr => (arr.forEach(a => a instanceof Promise ? a.catch(noop) : a), arr);
+    const noop = () => {
+    };
+
+    C.reduce = curry((f, acc, iter) => {
+        var iter2 = catchNoop(iter ? [...iter] : [...acc]);
+        return iter ? reduce(f, acc, iter2) : reduce(f, iter2);
+    })
+
+    C.take = curry((l, iter) => take(l, catchNoop([...iter])));
+    C.takeAll = C.take(Infinity);
+    C.map = curry(pipe(L.map, C.takeAll));
+    C.filter = curry(pipe(L.filter, C.takeAll));
+
+    go([1, 2, 3, 4, 5],
+        L.map(a => delay1000(a * a)),
+        L.filter(a => Promise.resolve(a % 2)),
+        C.reduce(add),
+        console.log
+    )
+
+    go([1, 2, 3, 4, 5],
+        L.map(a => delay1000(a * a)),
+        L.filter(a => delay1000(a % 2)),
+        L.map(a => delay1000(a * a)),
+        C.take(2),
+        C.reduce(add),
+        console.log
+    )
+
+    C.map(a => delay1000(a*a), [1,2,3,4]).then(console.log)
+
+</script>

@@ -1,0 +1,49 @@
+<script src="./fxJs.js"></script>
+<script>
+
+    function add10(a, callback) {
+        setTimeout(() => callback(a + 10), 100);
+    }
+
+    const a = add10(5, res => {
+        add10(res, res => {
+            add10(res, res => {
+                //console.log(res);
+            })
+        })
+    })
+
+    function add20(a) {
+        return new Promise(resolve => setTimeout(() => resolve(a + 20), 100))
+    }
+
+    const b = add20(5)
+        .then(add20)
+        .then(add20)
+    //.then(console.log)
+
+    const delay100 = a => new Promise(resolve => setTimeout(() => resolve(a), 100));
+
+    //const go1 = (a, f) => a instanceof Promise ? a.then(f) : f(a);
+    const add5 = a => a + 5;
+
+    const n1 = 10;
+    //go1(go1(n1, add5), console.log);
+
+    const n2 = delay100(10);
+    //go1(go1(n2, add5), console.log);
+
+    const g = a => a + 1;
+    const f = a => a * a;
+
+    //Array.of(1).map(g).map(f).forEach(r => console.log(r));
+    //Promise.resolve(1).then(g).then(f).then(r => console.log(r));
+
+    go(Promise.resolve(1),
+        a => a + 10,
+        a => Promise.resolve(a + 100),
+        a => a + 1000,
+        a => a + 10000,
+        console.log)
+
+</script>

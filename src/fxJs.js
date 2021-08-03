@@ -1,39 +1,53 @@
+const nop = Symbol('nop');
 const curry = f => (a, ..._) => _.length ? f(a, ..._) : (..._) => f(a, ..._);
+const go = (...args) => reduce((a, f) => f(a), args);
+const go1 = (a, f) => a instanceof Promise ? a.then(f) : f(a);
+const pipe = (f, ...fs) => (...as) => go(f(...as), ...fs);
+const add = (a, b) => a + b;
+const isIterable = a => a && a[Symbol.iterator];
 
-const map = curry((f, iter) => {
-    let res = [];
-    for (const a of iter) res.push(f(a))
-    return res;
-});
+const reduceF = (acc, a, f) =>
+    (a instanceof Promise ?
+        a.then(
+            a => f(acc, a),
+            e => e === nop ? acc : Promise.reject(e)
+        ) :
+        f(acc, a));
 
-const filter = curry((f, iter) => {
-    let res = [];
-    for (const a of iter) if (f(a)) res.push(a);
-    return res;
-});
+const head = iter => go1(take(1, iter), ([h]) => h);
 
 const reduce = curry((f, acc, iter) => {
-    if (!iter) {
-        iter = acc[Symbol.iterator]();
-        acc = iter.next().value;
-    }
-    for (const a of iter) acc = f(acc, a);
-    return acc;
+    if (!iter) return reduce(f, head(iter = acc[Symbol.iterator]()), iter);
+
+    iter = iter[Symbol.iterator]();
+    return go1(acc, function recur(acc) {
+        let cur;
+        while (!(cur = iter.next()).done) {
+            acc = reduceF(acc, cur.value, f);
+            if (acc instanceof Promise) return acc.then(recur);
+        }
+        return acc;
+    });
 });
-
-const go = (...args) => reduce((a, f) => f(a), args);
-
-const pipe = (f, ...fs) => (...as) => go(f(...as), ...fs);
-
-const add = (a, b) => a + b;
 
 const take = curry((l, iter) => {
     let res = [];
-    for (const a of iter) {
-        res.push(a);
-        if (res.length === l) return res;
+    iter = iter[Symbol.iterator]();
+    return function recur() {
+        let cur;
+        while (!(cur = iter.next()).done) {
+            const a = cur.value;
+            if (a instanceof Promise) {
+                return a
+                    .then(a => (res.push(a), res).length === l ? res : recur())
+                    .catch(e => e === nop ? recur() : Promise.reject(e));
+            }
+            res.push(a);
+            if (res.length === l) return res;
+        }
+        return res;
     }
-    return res;
+    ()
 });
 
 const range = l => {
@@ -43,19 +57,31 @@ const range = l => {
     return res;
 }
 
-const L = {};
-
-L.range = function* (l) {
-    let i = -1;
-    while (++i < l) {
-        yield i;
+const L = {
+    range: function* (l) {
+        let i = -1;
+        while (++i < l) {
+            yield i;
+        }
+    },
+    map: curry(function* (f, iter) {
+        for (const a of iter) yield go1(a, f);
+    }),
+    filter: curry(function* (f, iter) {
+        for (const a of iter) {
+            const b = go1(a, f);
+            if (b instanceof Promise) yield b.then(b => (b ? a : Promise.reject(nop)));
+            else if (b) yield a;
+        }
+    }),
+    flatten: function* (iter) {
+        for (const a of iter) {
+            if (isIterable(a)) yield* a;
+            else yield a;
+        }
     }
-}
+};
 
-L.filter = curry(function* (f, iter) {
-    for (const a of iter) if (f(a)) yield a;
-});
-
-L.map = curry(function* (f, iter) {
-    for (const a of iter) yield f(a)
-});
+const takeAll = take(Infinity);
+const map = curry(pipe(L.map, takeAll));
+const filter = curry(pipe(L.filter, takeAll));

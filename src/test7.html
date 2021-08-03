@@ -1,0 +1,45 @@
+<script src="./fxJs.js"></script>
+<script>
+    const join = curry((sep = ',', iter) => reduce((a, b) => `${a}${sep}${b}`, iter));
+
+    L.entries = function* (obj) {
+        for (const k in obj) yield [k, obj[k]];
+    }
+
+    const queryStr = pipe(
+        L.entries,
+        L.map(([k, v]) => `${k}=${v}`),
+        join('&')
+    )
+    console.log(queryStr({limit: 10, offset: 10, type: 'notice'}));
+
+    function* a() {
+        yield 10;
+        yield 11;
+        yield 12;
+        yield 13;
+    }
+
+    console.log(join(' - ', a()));
+
+    const users = [
+        {age: 32},
+        {age: 31},
+        {age: 37},
+        {age: 28},
+        {age: 25},
+        {age: 32},
+        {age: 31},
+        {age: 37},
+    ]
+
+    const find = curry((f, iter) => go(
+        iter,
+        L.filter(f),
+        take(1),
+        ([a]) => a
+    ))
+
+    console.log(find(u => u.age < 30, users))
+
+</script>
